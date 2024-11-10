@@ -14,35 +14,163 @@
         html, body {
             padding: 0;
             margin: 0;
-            background-color: var(--tg-theme-bg-color, #000);
+            background-color: var(--tg-theme-bg-color, #141517);
             color: var(--tg-theme-text-color, #ffffff);
             font-family: "Inter", serif;
+            overflow: hidden;
         }
         *::selection {
-            background-color: var(--tg-theme-hint-color, #232323);
+            background-color: var(--tg-theme-hint-color, #a5702e);
         }
         .wrapper {
             width: fit-content;
-            padding: 25px;
+            align-items: center;
             margin: auto;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 22px);
+            width: 100vw;
+            gap: 0px;
+            padding-top: 22px;
         }
-        .location {
-            font-size: 42px;
-            font-weight: 700;
-            font-style: italic;
+        .location font{
+            color: var(--Backgrounds-Primary, #FFF);
+            text-align: center;
+            font-feature-settings: 'liga' off, 'clig' off;
+            /* font-family: "SF Pro"; */
+            font-size: 18px;
+            /* font-weight: 500; */
+
+            opacity: 0.5;
+        }
+        .location{
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+
+        }
+        #loc-select{
+            color: white;
+            border: none;
+            background-color: transparent;
+            font-size: 18px;
+
+            display: flex;
+            padding: 2px 6px 2px 4px;
+            align-items: center;
+            gap: 6px;
+
+            border-radius: 5px;
+        }
+        #loc-select:active{
+            background: #42372B;
+        }
+        .temperature .item{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .temperature .item .main{
+            color: #FAC17A;
+            text-align: center;
+            /* font-family: Poppins; */
+            font-size: 104.578px;
+            font-weight: 500;
+        }
+        .image{
+            flex-grow: 1;
+        }
+        .divider{
+            height: 0px;
+            align-self: center;
+            
+            margin-bottom: 40px;
+        }
+        .info{
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            width: calc(100% - 44px);
+            padding: 22px;
+        }
+        .info .item{
+            display: flex;
+            flex-direction: column;
+
+            width: 100%;
+            
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .info .item img{
+            width: 24px;
+            height: 24px;
             margin-bottom: 20px;
         }
-        .item {
-            display: flex;
-            justify-content: space-between;
+        .info .item span{
+            color: var(--Backgrounds-Primary, #FFF);
+            text-align: left;
+            leading-trim: both;
+            text-edge: cap;
+            /* font-family: Poppins; */
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .info .item font{
+            color: var(--Backgrounds-Primary, #FFF);
+            text-align: left;
+            leading-trim: both;
+            text-edge: cap;
+            /* font-family: Poppins; */
+            font-size: 13px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: normal;
+
+            opacity: 0.5;
         }
     </style>
     <div class="wrapper">
-        <div class="location">Симферополь</div>
-        <div class="item"><span>Температура: </span><span><span class="temperature">{{w.temperature | round(1)}}</span>°C</span></div>
-        <div class="item" style="opacity: .6;">Ощущается: </span><span><span class="heapIndex"></span>°C</span></div>
-        <div class="item"><span>Давление: </span><span><span class="pressure">{{(w.pressure * 0.75006375541921) | round(1)}}</span>мм</span></div>
-        <div class="item"><span>Влажность: </span><span><span class="humidity">{{w.humidity | round(1)}}</span>%</span></div>
+        <div class="location">
+            <font>Симферополь</font>
+            <img src="source/dash.svg" alt="-">
+            <button id="loc-select">Пневматика <img src="source/loc-select.svg" alt=""></button>
+        </div>
+        <div class="divider">
+            <svg xmlns="http://www.w3.org/2000/svg" width="314" height="2" viewBox="0 0 314 2" fill="none">
+                <path opacity="0.2" d="M1 1H313" stroke="white" stroke-linecap="round"/>
+              </svg>
+        </div>
+        <div class="temperature">
+            <div class="item">
+                9:00
+                <div class="main">21°</div>
+            </div>
+        </div>
+        <div class="image">
+            <img src="" alt="">
+        </div>
+        <div class="info">
+            <div class="item">
+                <img src="source/wind.svg">
+                <span class="heapIndex">20м/c</span>
+                <font>Ветер</font>
+            </div>
+            <div class="item">
+                <img src="source/drop.svg">
+                <span class="humidity">65%</span>
+                <font>Влажность</font>                
+            </div>
+            <div class="item">
+                <img src="source/rain.svg">
+                <span class="pressure">790</span>
+                <font>Давление</font>
+            </div>
+        </div>
+        
     </div>
     <script>
         const t = document.querySelector(".temperature")
