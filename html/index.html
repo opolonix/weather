@@ -133,7 +133,7 @@
         <div class="location">
             <font>Симферополь</font>
             <img src="source/dash.svg" alt="-">
-            <button id="loc-select">Пневматика <img src="source/loc-select.svg" alt=""></button>
+            <button id="loc-select">Центр <img src="source/loc-select.svg" alt=""></button>
         </div>
         <div class="divider">
             <svg xmlns="http://www.w3.org/2000/svg" width="314" height="2" viewBox="0 0 314 2" fill="none">
@@ -143,7 +143,7 @@
         <div class="temperature">
             <div class="item">
                 <span class="time"></span>
-                <div class="main"><span class="temperature-field">{{w.temperature}}</span>°</div>
+                <div class="main" style="transform: translateX(22px);"><span class="temperature-field">{{w.temperature | round(1)}}</span>°</div>
             </div>
         </div>
         <div class="image">
@@ -152,17 +152,17 @@
         <div class="info">
             <div class="item">
                 <img src="source/wind.svg">
-                <span><span class="heapIndex"></span>c</span>
+                <span><span class="heapIndex">{{w.temperature | round(1)}}</span>c</span>
                 <font>Ощущается</font>
             </div>
             <div class="item">
                 <img src="source/drop.svg">
-                <span><span class="humidity">{{w.humidity}}</span>%</span>
+                <span><span class="humidity">{{w.humidity | round(1)}}</span>%</span>
                 <font>Влажность</font>                
             </div>
             <div class="item">
                 <img src="source/rain.svg">
-                <span class="pressure">{{w.pressure}}</span>
+                <span class="pressure">{{(w.pressure * 0.75006375541921) | round(1)}}</span>
                 <font>Давление</font>
             </div>
         </div>
