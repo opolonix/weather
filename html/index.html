@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Погода</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+            background-color: var(--tg-theme-bg-color, #000);
+            color: var(--tg-theme-text-color, #ffffff);
+            font-family: "Inter", serif;
+        }
+        *::selection {
+            background-color: var(--tg-theme-hint-color, #232323);
+        }
+        .wrapper {
+            width: fit-content;
+            padding: 25px;
+            margin: auto;
+        }
+        .location {
+            font-size: 42px;
+            font-weight: 700;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+    <div class="wrapper">
+        <div class="location">Симферополь</div>
+        <div class="item"><span>Температура: </span><span><span class="temperature">{{w.temperature | round(1)}}</span>°C</span></div>
+        <div class="item" style="opacity: .6;">Ощущается: </span><span><span class="heapIndex"></span>°C</span></div>
+        <div class="item"><span>Давление: </span><span><span class="pressure">{{(w.pressure * 0.75006375541921) | round(1)}}</span>мм</span></div>
+        <div class="item"><span>Влажность: </span><span><span class="humidity">{{w.humidity | round(1)}}</span>%</span></div>
+    </div>
+    <script>
+        const t = document.querySelector(".temperature")
+        const hi = document.querySelector(".heapIndex")
+        const p = document.querySelector(".pressure")
+        const h = document.querySelector(".humidity")
+
+        const calculateHeatIndex = (T, H) => {
+            const feelsLike = 0.96 * T + (40-H)/100 * T;
+            return feelsLike;
+        }
+        
+        hi.innerText = calculateHeatIndex({{w.temperature}}, {{w.humidity}}).toFixed(1)
+
+        setInterval(async () => {
+            data = await fetch("/get/weather")
+            data = await data.json()
+            
+            t.innerText = data.temperature.toFixed(1)
+            p.innerText = (data.pressure * 0.75006375541921).toFixed(1)
+            h.innerText = data.humidity.toFixed(1)
+            hi.innerText = calculateHeatIndex(data.temperature, data.humidity).toFixed(1)
+        }, 2000)
+    </script>
+</body>
+</html>
