@@ -1,4 +1,5 @@
-**/*.bin
+bin/*
+!bin/readme.txt
 
 
 # Byte-compiled / optimized / DLL files
