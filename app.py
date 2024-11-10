@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
 from pydantic import BaseModel
 
 from datas import TimeRow
@@ -63,8 +65,10 @@ async def receive_weather_data():
 
 @app.get("/get/range")
 async def receive_weather_data(items: int = 10, offcet: int = -10, step: int = 0) -> list:
-    
+
     stantion_id = 1
 
     items = min(items, 15000)
     ...
+
+app.mount("/", StaticFiles(directory="html"), name="static")

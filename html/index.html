@@ -113,8 +113,6 @@
         .info .item span{
             color: var(--Backgrounds-Primary, #FFF);
             text-align: left;
-            leading-trim: both;
-            text-edge: cap;
             /* font-family: Poppins; */
             font-size: 18px;
             font-weight: 600;
@@ -122,8 +120,6 @@
         .info .item font{
             color: var(--Backgrounds-Primary, #FFF);
             text-align: left;
-            leading-trim: both;
-            text-edge: cap;
             /* font-family: Poppins; */
             font-size: 13px;
             font-style: normal;
@@ -146,8 +142,8 @@
         </div>
         <div class="temperature">
             <div class="item">
-                9:00
-                <div class="main">21°</div>
+                <span class="time"></span>
+                <div class="main"><span class="temperature-field">{{w.temperature}}</span>°</div>
             </div>
         </div>
         <div class="image">
@@ -156,39 +152,52 @@
         <div class="info">
             <div class="item">
                 <img src="source/wind.svg">
-                <span class="heapIndex">20м/c</span>
-                <font>Ветер</font>
+                <span><span class="heapIndex"></span>c</span>
+                <font>Ощущается</font>
             </div>
             <div class="item">
                 <img src="source/drop.svg">
-                <span class="humidity">65%</span>
+                <span><span class="humidity">{{w.humidity}}</span>%</span>
                 <font>Влажность</font>                
             </div>
             <div class="item">
                 <img src="source/rain.svg">
-                <span class="pressure">790</span>
+                <span class="pressure">{{w.pressure}}</span>
                 <font>Давление</font>
             </div>
         </div>
         
     </div>
     <script>
-        const t = document.querySelector(".temperature")
+        const t = document.querySelector(".temperature-field")
         const hi = document.querySelector(".heapIndex")
         const p = document.querySelector(".pressure")
         const h = document.querySelector(".humidity")
+
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+            document.querySelector(".time").innerText = `${hours}:${minutes}:${seconds}`;
+        }
 
         const calculateHeatIndex = (T, H) => {
             const feelsLike = 0.96 * T + (40-H)/100 * T;
             return feelsLike;
         }
         
-        hi.innerText = calculateHeatIndex({{w.temperature}}, {{w.humidity}}).toFixed(1)
+        data = fetch("/get/weather").then(d => d.json()).then(data => {
+            hi.innerText = calculateHeatIndex(data.temperature, data.humidity).toFixed(1)
+            formatTime(new Date())
+        })
 
         setInterval(async () => {
             data = await fetch("/get/weather")
             data = await data.json()
             
+            formatTime(new Date())
+
             t.innerText = data.temperature.toFixed(1)
             p.innerText = (data.pressure * 0.75006375541921).toFixed(1)
             h.innerText = data.humidity.toFixed(1)
