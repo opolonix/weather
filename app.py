@@ -55,10 +55,16 @@ async def receive_weather_data(data: WeatherData):
 
 @app.get("/get/weather")
 async def receive_weather_data():
+
+    stantion_id = 1
+
     return last_weather_data
 
 
 @app.get("/get/range")
 async def receive_weather_data(items: int = 10, offcet: int = -10, step: int = 0) -> list:
+    
+    stantion_id = 1
+
     items = min(items, 15000)
     ...
