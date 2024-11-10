@@ -1,80 +1,85 @@
-from pydantic import BaseModel
 import time
 import struct
 import io
-import math
+from typing import Generator
 
-class DataLine(BaseModel):
-    trusted: bool = True
 
-    temperature: float
-    pressure: float
-    altitude: float
-    humidity: float
+class TimeRow:
+    def __init__(self, fp: io.BytesIO):
+        self.fp = fp
+        self.metasize = 8 + 8 + 4 # dd>I поле под метаданные файла
+
+    def find_item(self, timestamp: float, start: int, end: int) -> int:
+        length = end - start
+        step = length // self.datasize
+        center_index = start + self.datasize * (step // 2)
+
+        if length == 1: return center_index
+        if length == 0: return -1
+
+        self.fp.seek(center_index)
+        center_timestamp = struct.unpack('>I', self.fp.read(4))[0]
+
+        if center_timestamp < timestamp:
+            return self.find_item(timestamp, center_index, end)
+        elif center_timestamp > timestamp:
+            return self.find_item(timestamp, start, center_index)
+
+        return center_index
     
-    timestamp: int
+    def get_last(self) -> tuple[float, bytes]:
+        self.fp.seek(0, 2)
+        size = self.fp.tell()
 
-# каждый тип данных по 4 байта, итого 20 на каждую запись, 1 байт на обозначение достоверности
-linesize = 21
+        self.fp.seek(8)
+        first_timestamp = struct.unpack('d', self.fp.read(8))[0]
+        datasize = struct.unpack('>I', self.fp.read(4))[0]
 
-def unpack(f: io.BytesIO, items: int = 1, offcet: int = 0, step: int = 0) -> list[DataLine]:
-    if offcet < 0:
-        f.seek(0, 2)
-        offcet = int(f.tell() / linesize + offcet)
+        self.fp.seek(size - datasize - 4)
+        return int(struct.unpack('>I', self.fp.read(4))[0] + first_timestamp), self.fp.read(datasize)
 
-    if offcet + items > f.tell() / linesize:
-        f.seek(0, 2)
-        items = int(f.tell() / linesize) - offcet
+    def get_range(self, start: float, end: float) -> Generator[tuple[int, bytes], None, None]:
+        self.fp.seek(0, 2)
+        size = self.fp.tell()
 
-    f.seek(offcet * linesize)
-    result = []
+        self.fp.seek(0)
 
-    for i in range(items):
-        item = DataLine(
-            trusted=struct.unpack("?", f.read(1))[0],
+        last_timestamp = struct.unpack('d', self.fp.read(8))[0]
+        first_timestamp = struct.unpack('d', self.fp.read(8))[0]
+        self.datasize = struct.unpack('>I', self.fp.read(4))[0]
 
-            temperature=struct.unpack("f", f.read(4))[0],
-            pressure=struct.unpack("f", f.read(4))[0],
-            altitude=struct.unpack("f", f.read(4))[0],
-            humidity=struct.unpack("f", f.read(4))[0],
+        start_timestamp = start - first_timestamp if start - first_timestamp > 0 else 0
+        start_index = self.find_item(start_timestamp)
 
-            timestamp=struct.unpack("I", f.read(4))[0]
-        )
+        if end < last_timestamp:
+            end_timestamp = end - first_timestamp
+            end_index = self.find_item(start_timestamp)
+        else:
+            end_index = size - self.datasize
 
-        f.seek(f.tell() + step*linesize)
+        self.fp.seek(start_index)
 
-        result.append(item)
-        
-    return result
+        for item in range(start_index, end_index, self.datasize):
+            yield (struct.unpack('>I', self.fp.read(4)) + first_timestamp, self.fp.read(self.datasize))
 
-def pack(f: io.BytesIO, data: DataLine):
+    def wrire(self, data: bytes):
+        self.fp.seek(0, 2)
+        size = self.fp.tell()
 
-    f.seek(0, 2)
-    last = f.tell()
+        self.fp.seek(0)
+        self.fp.write(struct.pack('d', time.time())) # время последней записи
 
-    if last != 0: 
-        f.seek(last - 4) # нам нужно прочитать только последний timestamp
-        last_timestamp = struct.unpack("I", f.read(4))[0]
-    else: 
-        last_timestamp = int(time.time() - 11)
-        
-    result = b""
+        if size == 0:
+            self.fp.write(struct.pack('d', time.time())) # время первой записи
+            self.fp.write(struct.pack('>I', len(data))) # размер записи
 
-    result += struct.pack("f", data.temperature)
-    result += struct.pack("f", data.pressure)
-    result += struct.pack("f", data.altitude)
-    result += struct.pack("f", data.humidity)
-    result += struct.pack("I", data.timestamp)
+        self.fp.seek(8) # считываем метаданные
+        first_timestamp = struct.unpack('d', self.fp.read(8))[0]
+        datasize = struct.unpack('>I', self.fp.read(4))[0]
 
-    if (last_timestamp > data.timestamp // 10 * 10): # просто ограничиваем запись каждые десять секунд
-        ...
-    else:
+        if len(data) != datasize:
+            raise TypeError("Тип данных не соответствует исходному")
 
-        count = math.floor((data.timestamp - last_timestamp) / 10) # смотрим сколько нужно заполнить данных с прошлой записи
-        f.seek(last)
-        for i in range(count):
-            f.write(struct.pack("?", False)) # почечаем сгенерированные данные как недостоверные
-            f.write(result)
-
-        f.write(struct.pack("?", True))
-        f.write(result)
+        self.fp.seek(0, 2)
+        self.fp.write(struct.pack('>I', int(time.time()-first_timestamp))) # сокращаем до 4 байт и храним разницу текущего времени и первой записи
+        self.fp.write(data)
