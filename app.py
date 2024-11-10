@@ -4,8 +4,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from datas import pack, DataLine, unpack
-import time
+from datas import TimeRow
+import struct
 
 app = FastAPI()
 
@@ -33,15 +33,23 @@ async def read_root(request: Request):
 
 @app.post("/api/weather")
 async def receive_weather_data(data: WeatherData):
+
+    stantion_id = 1
+
     global last_weather_data
     last_weather_data = data.model_dump()
 
+    with open(f"bin/{stantion_id}/temperature.bin", "ab+") as f:
+        t = TimeRow(f)
+        t.wrire(struct.pack("f", data.temperature))
 
-    line = DataLine(**last_weather_data, timestamp=int(time.time()))
+    with open(f"bin/{stantion_id}/humidity.bin", "ab+") as f:
+        t = TimeRow(f)
+        t.wrire(struct.pack("f", data.humidity))
 
-    with open("data.bin", "ab+") as f:
-        pack(f, line)
-        f.close()
+    with open(f"bin/{stantion_id}/pressure.bin", "ab+") as f:
+        t = TimeRow(f)
+        t.wrire(struct.pack("f", data.pressure))
 
     return {"status": "success"}
 
@@ -51,9 +59,6 @@ async def receive_weather_data():
 
 
 @app.get("/get/range")
-async def receive_weather_data(items: int = 10, offcet: int = -10, step: int = 0) -> list[DataLine]:
+async def receive_weather_data(items: int = 10, offcet: int = -10, step: int = 0) -> list:
     items = min(items, 15000)
-    with open("data.bin", "rb") as f:
-        data = unpack(f, items, offcet, step)
-        f.close()
-    return data
+    ...
