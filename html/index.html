@@ -22,6 +22,9 @@
         *::selection {
             background-color: var(--tg-theme-hint-color, #a5702e);
         }
+        body * {
+            z-index: 2;
+        }
         img {
             user-select: none;
         }
@@ -179,6 +182,19 @@
         </div>
         
     </div>
+
+    <style>
+        .bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+    </style>
+
+    <canvas class="bg"></canvas>
     <script>
         const t = document.querySelector(".temperature-field")
         const hi = document.querySelector(".heapIndex")
@@ -215,7 +231,84 @@
             p.innerText = (data.pressure * 0.75006375541921).toFixed(1)
             h.innerText = data.humidity.toFixed(1)
             hi.innerText = calculateHeatIndex(data.temperature, data.humidity).toFixed(1)
-        }, 2000)
+
+        }, 3000)
+
+
+
+
+        const canvas = document.querySelector(".bg");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+
+        // Создание градиента для тени
+
+        function getDotPos(index, max, radius) {
+            deg = (360/max * index)  * Math.PI / 180
+            x = centerX + Math.cos(deg) * radius
+            y = centerY + Math.sin(deg) * radius
+
+            return {x, y}
+        }
+
+        function getDotPosD(startX, startY, deg, radius) {
+
+            deg = deg * Math.PI / 180
+            x = startX + Math.cos(deg) * radius
+            y = startY + Math.sin(deg) * radius
+
+            return {x, y}
+        }
+
+        let dots = new Array();
+        max = 15
+
+        last = window.innerWidth / 3
+        for (let i = 1; i <= max; i++) {
+            dots.push(last)
+        }
+
+        i = 0
+        dots.forEach(dot => {
+            dots[i] = last + Math.random()*100 - 50
+            i++;
+        })
+
+        size = 100
+
+        function draw() {
+            i = 0
+            ctx.beginPath();
+            dots.forEach(dot => {
+                i++;
+                pos = getDotPos(i, max, dot)
+                ctx.moveTo(centerX, centerY)
+                ctx.lineTo(pos.x, pos.y)
+                
+                // gradient = ctx.createLinearGradient(centerX, centerY, pos.x, pos.y);
+                // gradient.addColorStop(0, "blue");
+                // gradient.addColorStop(1, "transparent");
+
+                // ctx.fillStyle = gradient;
+                // ctx.fillRect(0, 0, canvas.width, canvas.height);
+            })
+            ctx.closePath();
+            ctx.strokeStyle = "#FAC17A";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            i = 0
+
+        }
+
+        // draw();
+
     </script>
 </body>
 </html>
