@@ -22,13 +22,16 @@
         *::selection {
             background-color: var(--tg-theme-hint-color, #a5702e);
         }
+        img {
+            user-select: none;
+        }
         .wrapper {
             width: fit-content;
             align-items: center;
             margin: auto;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 22px);
+            height: calc(100svh - 22px);
             width: 100vw;
             gap: 0px;
             padding-top: 22px;
@@ -78,6 +81,14 @@
             /* font-family: Poppins; */
             font-size: 104.578px;
             font-weight: 500;
+            position: relative;
+        }
+        .temperature .item .main::after {
+            content: "°";
+            position: absolute;
+        }
+        .temperature .item .main.minus {
+            transform: translateX(-22.705px);
         }
         .image{
             flex-grow: 1;
@@ -143,7 +154,7 @@
         <div class="temperature">
             <div class="item">
                 <span class="time"></span>
-                <div class="main" style="transform: translateX(22px);"><span class="temperature-field">{{w.temperature | round(1)}}</span>°</div>
+                <div class="main {% if w.temperature < 0 %}minus{% endif %}"><span class="temperature-field">{{w.temperature | round(1)}}</span></div>
             </div>
         </div>
         <div class="image">
@@ -152,7 +163,7 @@
         <div class="info">
             <div class="item">
                 <img src="source/wind.svg">
-                <span><span class="heapIndex">{{w.temperature | round(1)}}</span>c</span>
+                <span><span class="heapIndex">{{w.temperature | round(1)}}</span>°</span>
                 <font>Ощущается</font>
             </div>
             <div class="item">
@@ -177,9 +188,8 @@
         function formatTime(date) {
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
-            const seconds = String(date.getSeconds()).padStart(2, '0');
         
-            document.querySelector(".time").innerText = `${hours}:${minutes}:${seconds}`;
+            document.querySelector(".time").innerText = `${hours}:${minutes}`;
         }
 
         const calculateHeatIndex = (T, H) => {
@@ -197,6 +207,9 @@
             data = await data.json()
             
             formatTime(new Date())
+
+            if (data.temperature < 0) t.parentElement.classList.add("minus")
+            else t.parentElement.classList.remove("minus")
 
             t.innerText = data.temperature.toFixed(1)
             p.innerText = (data.pressure * 0.75006375541921).toFixed(1)
