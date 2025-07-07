@@ -14,102 +14,174 @@
         body, html {
             color: #ffffff;
             background-color: #000;
-            
+            padding: 0;
+            margin: 0;
         }
 
         .wrapper {
+            width: fit-content;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 5px;
+
             pre {
-                :first-child {
+                margin: 0;
+                /* background-color: #141414;
+                box-shadow: inset 0 0 10px #0a0a0a; */
+                font-family: "Cascadia Mono", sans-serif;
+                font-size: 2.5vh;
+                user-select: none;
+                width: 100%;
+                padding: 5px;
+                border-radius: 2px;
+                /* font-family: 'Times New Roman', Times, serif; */
+
+
+                &:first-child {
                     border-top-left-radius: 20px !important;
                     border-top-right-radius: 20px !important;
                     border-bottom-left-radius: 5px;
                     border-bottom-right-radius: 5px;
                 }
-                :last-child {
+                &:last-child {
                     border-top-left-radius: 5px;
                     border-top-right-radius: 5px;
                     border-bottom-left-radius: 20px !important;
                     border-bottom-right-radius: 20px !important;
                 }
 
-            }
-        }
+                span {
+                    cursor: pointer;
+                    transition-duration: .1s;
+                    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
-        pre {
-            background-color: #141414;
-            /* box-shadow: inset 0 0 10px #0a0a0a; */
-            font-family: "Cascadia Mono", sans-serif;
-            font-size: 2.5vh;
-            user-select: none;
-            width: fit-content;
-            padding: 15px 20px;
-            border-radius: 2px;
-            /* font-family: 'Times New Roman', Times, serif; */
-        }
-        pre span {
-            cursor: pointer;
-            transition-duration: .1s;
-        }
-        pre span:hover {
-            background-color: #242424;
-        }
-        pre span:not([key]) {
-            color: #8b8b8b;
-        }
-        pre span[unit] {
-            display: none;
-            padding-left: 4px;
-            background-color: #242424;
-            width: fit-content;
+                    &:hover {
+                        background-color: #242424;
+                    }
+                    &:not([key]) {
+                        color: #8b8b8b;
+                    }
+                    &[unit] {
+                        display: none;
+                        padding-left: 4px;
+                        background-color: #242424;
+                        width: fit-content;
+                    }
+                }
+            }
         }
     </style>
     <div class="wrapper">
     <pre>
 <span alt="скобка">{</span>
-    <span alt="&quot;локация&quot;">"loc"</span><span>: </span><span alt="Симферополь" key>Simferopol</span>,
     <span alt="&quot;температура&quot;">"temp"</span><span>: </span><span key="temperature">{{w.temperature}}</span><span unit>°C</span>,
     <span alt="&quot;давление&quot;">"pres"</span><span>: </span><span key="pressure">{{w.pressure}}</span><span unit>Pa</span>,
     <span alt="&quot;высота&quot;">"alti"</span><span>: </span><span key="altitude">{{w.altitude}}</span><span unit>m</span>,
     <span alt="&quot;влажность&quot;">"humi"</span><span>: </span><span key="humidity">{{w.humidity}}</span><span unit>%</span>
+    
+    <span alt="&quot;локация&quot;">"loc"</span><span>: </span><span alt="Симферополь" key>Simferopol</span>
+    <span alt="&quot;последний апдейт&quot;">"time"</span><span>: </span><span class="time" alt key></span>
 <span alt="скобка">}</span>
 </pre>
     </div>
 
 <script>
+    let last_update = Date.now() / 1000;
+    const timeEl = document.querySelector("span.time")
+
+    function decl(num) {
+        num = Math.abs(num) % 100;
+        const lastNum = num % 10;
+
+        if (num > 10 && num < 20) return 3;
+        if (lastNum === 1) return 1;
+        if (lastNum > 1 && lastNum < 5) return 2;
+        return 3;
+    }
     function fallbackCopyTextToClipboard(text) {
-  var textArea = document.createElement("textarea");
-  textArea.value = text;
-  
-  // Avoid scrolling to bottom
-  textArea.style.top = "0";
-  textArea.style.left = "0";
-  textArea.style.position = "fixed";
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+      
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
 
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
 
-  try {
-    var successful = document.execCommand('copy');
-    var msg = successful ? 'successful' : 'unsuccessful';
-    console.log('Fallback: Copying text command was ' + msg);
-  } catch (err) {
-    console.error('Fallback: Oops, unable to copy', err);
-  }
+        try {
+            var successful = document.execCommand('copy');
+            var msg = successful ? 'successful' : 'unsuccessful';
+        } catch (err) { }
+    
+        document.body.removeChild(textArea);
+    }
+    function copyTextToClipboard(text) {
+        if (!navigator.clipboard) {
+            fallbackCopyTextToClipboard(text);
+            return;
+        }
+        navigator.clipboard.writeText(text);
+    }
+    function drawLastUpdate() {
+        let current =  Date.now() / 1000;
 
-  document.body.removeChild(textArea);
-}
-function copyTextToClipboard(text) {
-  if (!navigator.clipboard) {
-    fallbackCopyTextToClipboard(text);
-    return;
-  }
-  navigator.clipboard.writeText(text).then(function() {
-    console.log('Async: Copying to clipboard was successful!');
-  }, function(err) {
-    console.error('Async: Could not copy text: ', err);
-  });
-}
+        if (last_update + 5 > current) {
+            if (timeEl.innerText != "now") {
+                if (timeEl.last_value != null) {
+                    timeEl.innerText = "только что"
+                    timeEl.last_value = "now"
+                    timeEl.setAttribute("alt", "только что")
+                }
+                else {
+                    timeEl.innerText = "now"
+                    timeEl.setAttribute("alt", "только что")
+                }
+            }
+        }
+        else {
+            let delta = current - last_update
+            if (delta < 60) {
+                w = ['секунду', 'секунды', 'секунд']
+                m = Math.ceil(delta)
+                t = `${m}s ago`
+            }
+            else if (delta < 60*60) {
+                w = ['минуту', 'минуты', 'минут']
+                m = Math.ceil(delta/60)
+                t = `${m}m ago`
+            }
+            else if (delta < 24*60*60) {
+                w = ['час', 'часа', 'часов']
+                m = Math.ceil(delta/(60*60))
+                t = `${m}h ago`
+            }
+            else {
+                w = ['день', 'дня', 'дней']
+                m = Math.ceil(delta/(60*60*24))
+                t = `${m}d ago`
+            }
+            if (timeEl.innerText != t) {
+                if (timeEl.last_value != null) {
+                    timeEl.last_value = t
+                    timeEl.setAttribute("alt", `${m} ${w[decl(m)-1]} назад`)
+                    timeEl.innerText = `${m} ${w[decl(m)-1]} назад`
+                }
+                else {
+                    timeEl.innerText = t
+                    timeEl.setAttribute("alt", `${m} ${w[decl(m)-1]} назад`)
+                }
+            }
+        }
+    }
+
+    drawLastUpdate()
+    document.addEventListener('visibilitychange', () => {
+        drawLastUpdate()
+    });
     document.querySelectorAll("pre > span").forEach(el => {
         el.addEventListener("click", e => {
             copyTextToClipboard(el.innerText)
@@ -129,19 +201,26 @@ function copyTextToClipboard(text) {
     })
 
     document.querySelectorAll("pre > span[alt]").forEach(el => {
-        let last_value = null;
+        el.last_value = null
         el.addEventListener("mouseenter", e => {
-            last_value = el.innerText
-            el.innerText = el.getAttribute("alt")
+            if (el.getAttribute("alt")) {
+                el.last_value = el.innerText
+                el.innerText = el.getAttribute("alt")
+            }
         })
         el.addEventListener("mouseleave", e => {
-            el.innerText = last_value
+            if (el.getAttribute("alt")) {
+                el.innerText = el.last_value
+                el.last_value = null
+            }
         })
     })
     
+    setInterval(drawLastUpdate, 300)
     setInterval(async () => {
         data = await fetch("/get/weather")
         data = await data.json()
+        last_update = Date.now() / 1000;
         document.querySelectorAll("pre > span[key]").forEach(el => {
             if (el.getAttribute("key") && data[el.getAttribute("key")] != el.innerText) {
                 el.innerText = data[el.getAttribute("key")]
