@@ -182,7 +182,7 @@
     document.addEventListener('visibilitychange', () => {
         drawLastUpdate()
     });
-    document.querySelectorAll("pre > span:not([cp])").forEach(el => {
+    document.querySelectorAll("pre > span[cp]").forEach(el => {
         el.addEventListener("click", e => {
             copyTextToClipboard(el.innerText)
         })
