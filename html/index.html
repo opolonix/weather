@@ -76,10 +76,10 @@
     <div class="wrapper">
     <pre>
 <span alt="скобка">{</span>
-    <span alt="&quot;температура&quot;">"temp"</span><span>: </span><span key="temperature">{{w.temperature}}</span><span unit>°C</span>,
-    <span alt="&quot;давление&quot;">"pres"</span><span>: </span><span key="pressure">{{w.pressure}}</span><span unit>Pa</span>,
-    <span alt="&quot;высота&quot;">"alti"</span><span>: </span><span key="altitude">{{w.altitude}}</span><span unit>m</span>,
-    <span alt="&quot;влажность&quot;">"humi"</span><span>: </span><span key="humidity">{{w.humidity}}</span><span unit>%</span>
+    <span alt="&quot;температура&quot;">"temp"</span><span>: </span><span key="temperature" cp>{{w.temperature}}</span><span unit>°C</span>,
+    <span alt="&quot;давление&quot;">"pres"</span><span>: </span><span key="pressure" cp>{{w.pressure}}</span><span unit>Pa</span>,
+    <span alt="&quot;высота&quot;">"alti"</span><span>: </span><span key="altitude" cp>{{w.altitude}}</span><span unit>m</span>,
+    <span alt="&quot;влажность&quot;">"humi"</span><span>: </span><span key="humidity" cp>{{w.humidity}}</span><span unit>%</span>
     
     <span alt="&quot;локация&quot;">"loc"</span><span>: </span><span alt="Симферополь" key>Simferopol</span>
     <span alt="&quot;последний апдейт&quot;">"time"</span><span>: </span><span class="time" alt key></span>
@@ -182,7 +182,7 @@
     document.addEventListener('visibilitychange', () => {
         drawLastUpdate()
     });
-    document.querySelectorAll("pre > span").forEach(el => {
+    document.querySelectorAll("pre > span:not([cp])").forEach(el => {
         el.addEventListener("click", e => {
             copyTextToClipboard(el.innerText)
         })
