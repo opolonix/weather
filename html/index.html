@@ -1,314 +1,153 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Погода</title>
+    <title>Document</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cascadia+Mono:ital,wght@0,200..700;1,200..700&display=swap" rel="stylesheet">
+
 </head>
 <body>
     <style>
-        html, body {
-            padding: 0;
-            margin: 0;
-            background-color: var(--tg-theme-bg-color, #141517);
-            color: var(--tg-theme-text-color, #ffffff);
-            font-family: "Inter", serif;
-            overflow: hidden;
+        body, html {
+            color: #ffffff;
+            background-color: #000;
+            
         }
-        *::selection {
-            background-color: var(--tg-theme-hint-color, #a5702e);
-        }
-        body * {
-            z-index: 2;
-        }
-        img {
-            user-select: none;
-        }
+
         .wrapper {
+            pre {
+                :first-child {
+                    border-top-left-radius: 20px !important;
+                    border-top-right-radius: 20px !important;
+                    border-bottom-left-radius: 5px;
+                    border-bottom-right-radius: 5px;
+                }
+                :last-child {
+                    border-top-left-radius: 5px;
+                    border-top-right-radius: 5px;
+                    border-bottom-left-radius: 20px !important;
+                    border-bottom-right-radius: 20px !important;
+                }
+
+            }
+        }
+
+        pre {
+            background-color: #141414;
+            /* box-shadow: inset 0 0 10px #0a0a0a; */
+            font-family: "Cascadia Mono", sans-serif;
+            font-size: 2.5vh;
+            user-select: none;
             width: fit-content;
-            align-items: center;
-            margin: auto;
-            display: flex;
-            flex-direction: column;
-            height: calc(100svh - 22px);
-            width: 100vw;
-            gap: 0px;
-            padding-top: 22px;
+            padding: 15px 20px;
+            border-radius: 2px;
+            /* font-family: 'Times New Roman', Times, serif; */
         }
-        .location font{
-            color: var(--Backgrounds-Primary, #FFF);
-            text-align: center;
-            font-feature-settings: 'liga' off, 'clig' off;
-            /* font-family: "SF Pro"; */
-            font-size: 18px;
-            /* font-weight: 500; */
-
-            opacity: 0.5;
+        pre span {
+            cursor: pointer;
+            transition-duration: .1s;
         }
-        .location{
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-
+        pre span:hover {
+            background-color: #242424;
         }
-        #loc-select{
-            color: white;
-            border: none;
-            background-color: transparent;
-            font-size: 18px;
-
-            display: flex;
-            padding: 2px 6px 2px 4px;
-            align-items: center;
-            gap: 6px;
-
-            border-radius: 5px;
+        pre span:not([key]) {
+            color: #8b8b8b;
         }
-        #loc-select:active{
-            background: #42372B;
-        }
-        .temperature .item{
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-        }
-        .temperature .item .main{
-            color: #FAC17A;
-            text-align: center;
-            /* font-family: Poppins; */
-            font-size: 104.578px;
-            font-weight: 500;
-            position: relative;
-        }
-        .temperature .item .main::after {
-            content: "°";
-            position: absolute;
-        }
-        .temperature .item .main.minus {
-            transform: translateX(-22.705px);
-        }
-        .image{
-            flex-grow: 1;
-        }
-        .divider{
-            height: 0px;
-            align-self: center;
-            
-            margin-bottom: 40px;
-        }
-        .info{
-            display: flex;
-            flex-direction: row;
-            gap: 8px;
-            width: calc(100% - 44px);
-            padding: 22px;
-        }
-        .info .item{
-            display: flex;
-            flex-direction: column;
-
-            width: 100%;
-            
-            border-radius: 12px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .info .item img{
-            width: 24px;
-            height: 24px;
-            margin-bottom: 20px;
-        }
-        .info .item span{
-            color: var(--Backgrounds-Primary, #FFF);
-            text-align: left;
-            /* font-family: Poppins; */
-            font-size: 18px;
-            font-weight: 600;
-        }
-        .info .item font{
-            color: var(--Backgrounds-Primary, #FFF);
-            text-align: left;
-            /* font-family: Poppins; */
-            font-size: 13px;
-            font-style: normal;
-            font-weight: 400;
-            line-height: normal;
-
-            opacity: 0.5;
+        pre span[unit] {
+            display: none;
+            padding-left: 4px;
+            background-color: #242424;
+            width: fit-content;
         }
     </style>
     <div class="wrapper">
-        <div class="location">
-            <font>Симферополь</font>
-            <img src="source/dash.svg" alt="-">
-            <button id="loc-select">Центр <img src="source/loc-select.svg" alt=""></button>
-        </div>
-        <div class="divider">
-            <svg xmlns="http://www.w3.org/2000/svg" width="314" height="2" viewBox="0 0 314 2" fill="none">
-                <path opacity="0.2" d="M1 1H313" stroke="white" stroke-linecap="round"/>
-              </svg>
-        </div>
-        <div class="temperature">
-            <div class="item">
-                <span class="time"></span>
-                <div class="main {% if w.temperature < 0 %}minus{% endif %}"><span class="temperature-field">{{w.temperature | round(1)}}</span></div>
-            </div>
-        </div>
-        <div class="image">
-            <img src="" alt="">
-        </div>
-        <div class="info">
-            <div class="item">
-                <img src="source/wind.svg">
-                <span><span class="heapIndex">{{w.temperature | round(1)}}</span>°</span>
-                <font>Ощущается</font>
-            </div>
-            <div class="item">
-                <img src="source/drop.svg">
-                <span><span class="humidity">{{w.humidity | round(1)}}</span>%</span>
-                <font>Влажность</font>                
-            </div>
-            <div class="item">
-                <img src="source/rain.svg">
-                <span class="pressure">{{(w.pressure * 0.75006375541921) | round(1)}}</span>
-                <font>Давление</font>
-            </div>
-        </div>
-        
+    <pre>
+<span alt="скобка">{</span>
+    <span alt="&quot;локация&quot;">"loc"</span><span>: </span><span alt="Симферополь" key>Simferopol</span>,
+    <span alt="&quot;температура&quot;">"temp"</span><span>: </span><span key="temperature">{{w.temperature}}</span><span unit>°C</span>,
+    <span alt="&quot;давление&quot;">"pres"</span><span>: </span><span key="pressure">{{w.pressure}}</span><span unit>Pa</span>,
+    <span alt="&quot;высота&quot;">"alti"</span><span>: </span><span key="altitude">{{w.altitude}}</span><span unit>m</span>,
+    <span alt="&quot;влажность&quot;">"humi"</span><span>: </span><span key="humidity">{{w.humidity}}</span><span unit>%</span>
+<span alt="скобка">}</span>
+</pre>
     </div>
 
-    <style>
-        .bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-    </style>
+<script>
+    function fallbackCopyTextToClipboard(text) {
+  var textArea = document.createElement("textarea");
+  textArea.value = text;
+  
+  // Avoid scrolling to bottom
+  textArea.style.top = "0";
+  textArea.style.left = "0";
+  textArea.style.position = "fixed";
 
-    <canvas class="bg"></canvas>
-    <script>
-        const t = document.querySelector(".temperature-field")
-        const hi = document.querySelector(".heapIndex")
-        const p = document.querySelector(".pressure")
-        const h = document.querySelector(".humidity")
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
 
-        function formatTime(date) {
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-        
-            document.querySelector(".time").innerText = `${hours}:${minutes}`;
-        }
+  try {
+    var successful = document.execCommand('copy');
+    var msg = successful ? 'successful' : 'unsuccessful';
+    console.log('Fallback: Copying text command was ' + msg);
+  } catch (err) {
+    console.error('Fallback: Oops, unable to copy', err);
+  }
 
-        const calculateHeatIndex = (T, H) => {
-            const feelsLike = 0.96 * T + (40-H)/100 * T;
-            return feelsLike;
-        }
-        
-        data = fetch("/get/weather").then(d => d.json()).then(data => {
-            hi.innerText = calculateHeatIndex(data.temperature, data.humidity).toFixed(1)
-            formatTime(new Date())
+  document.body.removeChild(textArea);
+}
+function copyTextToClipboard(text) {
+  if (!navigator.clipboard) {
+    fallbackCopyTextToClipboard(text);
+    return;
+  }
+  navigator.clipboard.writeText(text).then(function() {
+    console.log('Async: Copying to clipboard was successful!');
+  }, function(err) {
+    console.error('Async: Could not copy text: ', err);
+  });
+}
+    document.querySelectorAll("pre > span").forEach(el => {
+        el.addEventListener("click", e => {
+            copyTextToClipboard(el.innerText)
         })
-
-        setInterval(async () => {
-            data = await fetch("/get/weather")
-            data = await data.json()
-            
-            formatTime(new Date())
-
-            if (data.temperature < 0) t.parentElement.classList.add("minus")
-            else t.parentElement.classList.remove("minus")
-
-            t.innerText = data.temperature.toFixed(1)
-            p.innerText = (data.pressure * 0.75006375541921).toFixed(1)
-            h.innerText = data.humidity.toFixed(1)
-            hi.innerText = calculateHeatIndex(data.temperature, data.humidity).toFixed(1)
-
-        }, 3000)
+    })
 
 
-
-
-        const canvas = document.querySelector(".bg");
-        const ctx = canvas.getContext("2d");
-
-        canvas.width = window.innerWidth
-        canvas.height = window.innerHeight
-
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-
-
-        // Создание градиента для тени
-
-        function getDotPos(index, max, radius) {
-            deg = (360/max * index)  * Math.PI / 180
-            x = centerX + Math.cos(deg) * radius
-            y = centerY + Math.sin(deg) * radius
-
-            return {x, y}
-        }
-
-        function getDotPosD(startX, startY, deg, radius) {
-
-            deg = deg * Math.PI / 180
-            x = startX + Math.cos(deg) * radius
-            y = startY + Math.sin(deg) * radius
-
-            return {x, y}
-        }
-
-        let dots = new Array();
-        max = 15
-
-        last = window.innerWidth / 3
-        for (let i = 1; i <= max; i++) {
-            dots.push(last)
-        }
-
-        i = 0
-        dots.forEach(dot => {
-            dots[i] = last + Math.random()*100 - 50
-            i++;
-        })
-
-        size = 100
-
-        function draw() {
-            i = 0
-            ctx.beginPath();
-            dots.forEach(dot => {
-                i++;
-                pos = getDotPos(i, max, dot)
-                ctx.moveTo(centerX, centerY)
-                ctx.lineTo(pos.x, pos.y)
-                
-                // gradient = ctx.createLinearGradient(centerX, centerY, pos.x, pos.y);
-                // gradient.addColorStop(0, "blue");
-                // gradient.addColorStop(1, "transparent");
-
-                // ctx.fillStyle = gradient;
-                // ctx.fillRect(0, 0, canvas.width, canvas.height);
+    document.querySelectorAll("pre > span[key]").forEach(el => {
+        if (el.getAttribute("key")) {
+            el.addEventListener("mouseenter", e => {
+                el.nextElementSibling.style.display = "inline"
             })
-            ctx.closePath();
-            ctx.strokeStyle = "#FAC17A";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            i = 0
-
+            el.addEventListener("mouseleave", e => {
+                el.nextElementSibling.style.display = "none"
+            })
         }
+    })
 
-        // draw();
-
-    </script>
+    document.querySelectorAll("pre > span[alt]").forEach(el => {
+        let last_value = null;
+        el.addEventListener("mouseenter", e => {
+            last_value = el.innerText
+            el.innerText = el.getAttribute("alt")
+        })
+        el.addEventListener("mouseleave", e => {
+            el.innerText = last_value
+        })
+    })
+    
+    setInterval(async () => {
+        data = await fetch("/get/weather")
+        data = await data.json()
+        document.querySelectorAll("pre > span[key]").forEach(el => {
+            if (el.getAttribute("key") && data[el.getAttribute("key")] != el.innerText) {
+                el.innerText = data[el.getAttribute("key")]
+            }
+        })
+    }, 3000)
+</script>
 </body>
 </html>

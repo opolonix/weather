@@ -9,7 +9,12 @@ class TimeRow:
         self.fp = fp
         self.metasize = 8 + 8 + 4 # dd>I поле под метаданные файла
 
-    def find_item(self, timestamp: float, start: int, end: int) -> int:
+    def find_item(self, timestamp: float, start: int = -1, end: int = -1) -> int:
+        if end == -1:
+            self.fp.seek(0, 2)
+            end = self.fp.tell()
+        if start == -1: start = self.metasize
+
         length = end - start
         step = length // self.datasize
         center_index = start + self.datasize * (step // 2)
@@ -48,19 +53,26 @@ class TimeRow:
         first_timestamp = struct.unpack('d', self.fp.read(8))[0]
         self.datasize = struct.unpack('>I', self.fp.read(4))[0]
 
-        start_timestamp = start - first_timestamp if start - first_timestamp > 0 else 0
-        start_index = self.find_item(start_timestamp)
+        # start_timestamp = start - first_timestamp if start - first_timestamp > 0 else 0
+        # start_index = self.find_item(start_timestamp)
 
-        if end < last_timestamp:
-            end_timestamp = end - first_timestamp
-            end_index = self.find_item(start_timestamp)
-        else:
-            end_index = size - self.datasize
-
+        # if end < last_timestamp:
+        #     end_timestamp = end - first_timestamp
+        #     end_index = self.find_item(start_timestamp)
+        # else:
+        #     end_index = size - self.datasize
+        start_index = self.metasize
+        end_index = size
         self.fp.seek(start_index)
 
-        for item in range(start_index, end_index, self.datasize):
-            yield (struct.unpack('>I', self.fp.read(4)) + first_timestamp, self.fp.read(self.datasize))
+        print(start_index, (end_index-start_index)/(self.datasize + 4))
+
+        result = []
+
+        for item in range(start_index, end_index, self.datasize+4):
+            result.append([struct.unpack('>I', self.fp.read(4))[0] + first_timestamp, self.fp.read(self.datasize)])
+
+        return result
 
     def wrire(self, data: bytes):
         self.fp.seek(0, 2)
@@ -80,6 +92,14 @@ class TimeRow:
         if len(data) != datasize:
             raise TypeError("Тип данных не соответствует исходному")
 
-        self.fp.seek(0, 2)
-        self.fp.write(struct.pack('>I', int(time.time()-first_timestamp))) # сокращаем до 4 байт и храним разницу текущего времени и первой записи
+        self.fp.seek(size - datasize - 4) # читаем последний таймстамп
+        last_timestamp = struct.unpack('>I', self.fp.read(4))[0]
+        current_timestamp = int(time.time()-first_timestamp)
+
+        if (last_timestamp < current_timestamp): # создаем новую запись
+            self.fp.seek(0, 2)
+        else: # перепишем последнюю запись
+            self.fp.seek(size - datasize - 4)
+
+        self.fp.write(struct.pack('>I', current_timestamp // 10 * 10 + 10))
         self.fp.write(data)
